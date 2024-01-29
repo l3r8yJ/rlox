@@ -10,7 +10,7 @@ use TokenType::{
 use crate::scanner::scanner::Scanner;
 use crate::token::token::Token;
 use crate::token::token_type::TokenType;
-use crate::token::token_type::TokenType::Number;
+use crate::token::token_type::TokenType::{Identifier, Number};
 
 impl Scanner {
     pub fn scan_tokens(&mut self) -> &mut [Token] {
@@ -75,6 +75,8 @@ impl Scanner {
             _ => {
                 if Self::is_digit(c) {
                     self.number_advice();
+                } else if Self::is_alpha(c) {
+                    self.identifier_advice()
                 } else {
                     panic!("An error")
                 }
@@ -156,9 +158,64 @@ impl Scanner {
         self.add_literal_token(Number, value.to_string());
     }
 
+    fn identifier_advice(&mut self) {
+        while Self::is_alpha_numeric(self.peek()) {
+            self.advance();
+        }
+        let text = &self.source.as_str()[self.start..self.current];
+        let token = self.keywords.get(text).unwrap_or(&Identifier).clone();
+        self.add_token(token);
+    }
+
+    fn is_alpha_numeric(c: char) -> bool {
+        return Self::is_alpha(c) || Self::is_digit(c);
+    }
+
+    fn is_alpha(c: char) -> bool {
+        return (c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z') || c == '_';
+    }
+
     fn is_digit(c: char) -> bool {
         return c >= '0' && c <= '9';
     }
+}
+
+#[test]
+fn should_scan_identifiers_with_keywords() -> Result<()> {
+    let expected_len = 13;
+    let source = r#"
+        while (true) {
+            identifier = identifier + 1;
+        }
+    "#;
+    let mut scanner = Scanner::new(source.to_string(), vec![]);
+    scanner.scan_tokens();
+    assert_eq!(
+        scanner.tokens.len(),
+        expected_len,
+        "{:?} should have len {} but was {}",
+        scanner.tokens,
+        expected_len,
+        scanner.tokens.len()
+    );
+    Ok(())
+}
+
+#[test]
+fn should_scan_some_keywords() -> Result<()> {
+    let expected_len = 5;
+    let source = "class while if fun";
+    let mut scanner = Scanner::new(source.to_string(), vec![]);
+    scanner.scan_tokens();
+    assert_eq!(
+        scanner.tokens.len(),
+        expected_len,
+        "{:?} should have len {} but was {}",
+        scanner.tokens,
+        expected_len,
+        scanner.tokens.len()
+    );
+    Ok(())
 }
 
 #[test]

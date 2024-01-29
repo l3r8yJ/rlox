@@ -1,5 +1,5 @@
 #[allow(dead_code)]
-#[derive(Debug, PartialEq)]
+#[derive(Debug, PartialEq, Copy, Clone)]
 pub enum TokenType {
     // Single-character tokens.
     LeftParen,
