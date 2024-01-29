@@ -170,7 +170,7 @@ impl Scanner {
     }
 
     fn multiline_comment_advice(&mut self) {
-        // offset for next * and / symbols at the end of comment
+        // offset for next '*' and '/' symbols at the end of comment
         let comment_ending_offset = 2;
         while self.peek() != '*' {
             let current = self.advance();
