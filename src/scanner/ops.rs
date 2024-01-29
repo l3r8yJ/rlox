@@ -88,10 +88,10 @@ impl Scanner {
     }
 
     fn add_token(&mut self, token_type: TokenType) {
-        self.add_token_liter(token_type, "".to_string());
+        self.add_literal_token(token_type, "".to_string());
     }
 
-    fn add_token_liter(&mut self, token_type: TokenType, literal: String) {
+    fn add_literal_token(&mut self, token_type: TokenType, literal: String) {
         let text: &str = &self.source.as_str()[self.start..self.current];
         self.tokens
             .push(Token::new(token_type, text.to_string(), literal, self.line))
@@ -139,7 +139,7 @@ impl Scanner {
         }
         self.advance();
         let string_value = &self.source.as_str()[(self.start + 1)..(self.current - 1)];
-        self.add_token_liter(TokenType::String, string_value.to_string());
+        self.add_literal_token(TokenType::String, string_value.to_string());
     }
 
     fn number_advice(&mut self) {
@@ -153,7 +153,7 @@ impl Scanner {
             }
         };
         let value = &self.source.as_str()[self.start..self.current];
-        self.add_token_liter(Number, value.to_string());
+        self.add_literal_token(Number, value.to_string());
     }
 
     fn is_digit(c: char) -> bool {
