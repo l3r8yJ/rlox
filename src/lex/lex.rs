@@ -1,15 +1,24 @@
+use anyhow::Ok;
+use anyhow::Result;
+
 #[derive(Debug)]
 pub struct Lex {
     pub had_error: bool,
 }
 
 impl Lex {
-    pub fn lox_error(&mut self, line: i32, message: &str) {
-        self.report(line, message, "");
-        self.had_error = true;
+    pub fn new() -> Lex {
+        Lex { had_error: false }
     }
+}
 
-    fn report(&self, line: i32, message: &str, place: &str) {
-        eprintln!("[{line}] Error occurred {place} : {message}");
-    }
+#[test]
+fn should_create_empty_lex() -> Result<()> {
+    let lex = Lex::new();
+    assert_eq!(
+        lex.had_error, false,
+        "New lex should be without an errors, but was {:?}",
+        lex
+    );
+    Ok(())
 }
