@@ -98,7 +98,7 @@ impl Scanner {
         }
         let current = match self.source.chars().nth(self.current) {
             Some(c) => c,
-            None => panic!("Ann error occurred, current char not found"),
+            None => panic!("Current char not found"),
         };
         if current != expected {
             return false;
