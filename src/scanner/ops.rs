@@ -65,8 +65,10 @@ impl Scanner {
                     while self.peek() != '\n' && !self.is_at_end() {
                         self.advance();
                     }
+                } else if self.contains('*') {
+                    self.multiline_comment_advice();
                 } else {
-                    self.add_token(Slash)
+                    self.add_token(Slash);
                 }
             }
             ' ' | '\r' | '\t' => {}
@@ -167,6 +169,23 @@ impl Scanner {
         self.add_token(token);
     }
 
+    fn multiline_comment_advice(&mut self) {
+        // offset for next * and / symbols at the end of comment
+        let comment_ending_offset = 2;
+        while self.peek() != '*' {
+            let current = self.advance();
+            if current == '\n' {
+                self.line += 1;
+            }
+        }
+        if self.peek_next() == '/' {
+            self.current += comment_ending_offset;
+            return;
+        }
+        self.advance();
+        self.multiline_comment_advice();
+    }
+
     fn is_alpha_numeric(c: char) -> bool {
         return Self::is_alpha(c) || Self::is_digit(c);
     }
@@ -178,6 +197,56 @@ impl Scanner {
     fn is_digit(c: char) -> bool {
         return c >= '0' && c <= '9';
     }
+}
+
+#[test]
+fn should_ignore_multiline_comment() -> Result<()> {
+    let expected_len = 14;
+    let source = r#"
+        /**
+        * while(!false) { print id; }
+        * My cool *comment*
+        *
+        */
+        if (a > b) {
+            /*here im calling fun inside of if statement!*/
+            do_something();
+        };
+    "#;
+    let mut scanner = Scanner::new(source.to_string(), vec![]);
+    scanner.scan_tokens();
+    assert_eq!(
+        scanner.tokens.len(),
+        expected_len,
+        "{:?} should have len {} but was {}",
+        scanner.tokens,
+        expected_len,
+        scanner.tokens.len()
+    );
+    Ok(())
+}
+
+#[test]
+fn should_ignore_single_line_comment() -> Result<()> {
+    let expected_len = 14;
+    let source = r#"
+        // My cool *comment*
+        // while if ++ / /
+        if (a > b) {
+            do_something();
+        };
+    "#;
+    let mut scanner = Scanner::new(source.to_string(), vec![]);
+    scanner.scan_tokens();
+    assert_eq!(
+        scanner.tokens.len(),
+        expected_len,
+        "{:?} should have len {} but was {}",
+        scanner.tokens,
+        expected_len,
+        scanner.tokens.len()
+    );
+    Ok(())
 }
 
 #[test]
