@@ -223,6 +223,7 @@ fn should_ignore_multiline_comment() -> Result<()> {
         expected_len,
         scanner.tokens.len()
     );
+    assert_eq!(scanner.line, 10);
     Ok(())
 }
 
