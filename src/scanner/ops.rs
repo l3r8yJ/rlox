@@ -10,6 +10,7 @@ use TokenType::{
 use crate::scanner::scanner::Scanner;
 use crate::token::token::Token;
 use crate::token::token_type::TokenType;
+use crate::token::token_type::TokenType::Number;
 
 impl Scanner {
     pub fn scan_tokens(&mut self) -> &mut [Token] {
@@ -72,7 +73,11 @@ impl Scanner {
             '\n' => self.line += 1,
             '"' => self.string_advance(),
             _ => {
-                todo!("Add logging with err")
+                if Self::is_digit(c) {
+                    self.number_advice();
+                } else {
+                    panic!("An error")
+                }
             }
         }
     }
@@ -107,6 +112,13 @@ impl Scanner {
         true
     }
 
+    fn peek_next(&self) -> char {
+        if self.current + 1 >= self.source.len() {
+            return '\0';
+        }
+        self.source.chars().nth(self.current + 1).unwrap()
+    }
+
     fn peek(&self) -> char {
         return if self.is_at_end() {
             '\0'
@@ -129,6 +141,58 @@ impl Scanner {
         let string_value = &self.source.as_str()[(self.start + 1)..(self.current - 1)];
         self.add_token_liter(TokenType::String, string_value.to_string());
     }
+
+    fn number_advice(&mut self) {
+        while Self::is_digit(self.peek()) {
+            self.advance();
+        }
+        if self.peek() == '.' && Self::is_digit(self.peek_next()) {
+            self.advance();
+            while Self::is_digit(self.peek()) {
+                self.advance();
+            }
+        };
+        let value = &self.source.as_str()[self.start..self.current];
+        self.add_token_liter(Number, value.to_string());
+    }
+
+    fn is_digit(c: char) -> bool {
+        return c >= '0' && c <= '9';
+    }
+}
+
+#[test]
+fn should_read_floating_numbers() -> Result<()> {
+    let source = "1.23 2.34 3.45 4.56";
+    let expected_len = 5;
+    let mut scanner = Scanner::new(source.to_string(), vec![]);
+    scanner.scan_tokens();
+    assert_eq!(
+        scanner.tokens.len(),
+        expected_len,
+        "{:?} should have len {} but was {}",
+        scanner.tokens,
+        expected_len,
+        scanner.tokens.len()
+    );
+    Ok(())
+}
+
+#[test]
+fn should_read_int_numbers() -> Result<()> {
+    let source = "1 2 3 4";
+    let expected_len = 5;
+    let mut scanner = Scanner::new(source.to_string(), vec![]);
+    scanner.scan_tokens();
+    assert_eq!(
+        scanner.tokens.len(),
+        expected_len,
+        "{:?} should have len {} but was {}",
+        scanner.tokens,
+        expected_len,
+        scanner.tokens.len()
+    );
+    Ok(())
 }
 
 #[test]
