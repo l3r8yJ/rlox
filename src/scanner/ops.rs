@@ -153,6 +153,21 @@ fn should_get_string_value() -> Result<()> {
 }
 
 #[test]
+fn should_ignore_whitespaces() -> Result<()> {
+    let expected_len = 1;
+    let source: &str = "\n\r\n\t ";
+    let mut scanner: Scanner = Scanner::new(source.to_string(), vec![]);
+    scanner.scan_tokens();
+    assert_eq!(
+        scanner.tokens.len(),
+        expected_len,
+        "{:?} should contain only EOF",
+        scanner.tokens
+    );
+    Ok(())
+}
+
+#[test]
 fn should_add_valid_tokens() -> Result<()> {
     let expected_len = 22;
     let source: &str = "{} () + - / * < > <= >= != == = != ! ; * , .";
