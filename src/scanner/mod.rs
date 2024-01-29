@@ -1,2 +1,2 @@
-mod ops;
-mod scanner;
+pub mod ops;
+pub mod scanner;

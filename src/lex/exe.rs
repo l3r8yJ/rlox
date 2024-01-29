@@ -1,20 +1,20 @@
-use std::fs::read_to_string;
-use std::io::stdin;
+use std::fs::File;
+use std::io::{stdin, Read};
 
 use crate::lex::lex::Lex;
+use crate::scanner::scanner::Scanner;
 use crate::token::token::Token;
 
 impl Lex {
     pub fn run_file(&self, file: Option<&String>) {
-        let program = match read_to_string(file.unwrap()) {
-            Ok(str) => str,
-            Err(e) => {
-                println!("Can't execute file: {e}");
-                std::process::exit(1);
-            }
+        let mut file = File::open(file.unwrap()).expect("Should have been able to read the file");
+        let mut buff: Vec<u8> = vec![];
+        file.read_to_end(&mut buff).expect("Can't read file");
+        let program = match std::str::from_utf8(buff.as_slice()) {
+            Ok(text) => text,
+            Err(e) => panic!("{:?}", e),
         };
-        self.run(&*program);
-
+        self.run(program);
         if self.had_error {
             std::process::exit(65);
         };
@@ -44,7 +44,8 @@ impl Lex {
         tokens.iter().for_each(|t| println!("{:?}", t))
     }
 
-    fn scan_tokens(&self, _source: &str) -> Vec<Token> {
-        todo!()
+    fn scan_tokens(&self, source: &str) -> Vec<Token> {
+        let mut scanner = Scanner::new(source.to_string(), vec![]);
+        scanner.scan_tokens().to_vec()
     }
 }
